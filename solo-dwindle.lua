@@ -358,12 +358,11 @@ local function is_layout_window(window)
     return false
   end
 
-  -- An eligible floating window may be left behind by a config reload, which
-  -- recreates this module's Lua state without changing the live window. Count
-  -- it so reconciliation can adopt it again.
+  -- Unmanaged floating windows are auxiliary to Dwindle: dialogs and other
+  -- transient floats should not make a managed solo window rejoin the tiled
+  -- layout. A managed floating window still represents the solo layout target.
   return not window.floating
     or managed[window.address] ~= nil
-    or profile_for(window) ~= nil
 end
 
 local function workspace_windows(workspace)
@@ -495,6 +494,18 @@ local function reconcile_workspace(workspace)
   end
 
   local windows = workspace_windows(workspace)
+
+  -- A known app may launch naturally floating, or remain floating across a
+  -- config reload. Adopt it only when it is the sole visible window. If other
+  -- floating windows are present, leave them all alone until an existing
+  -- managed target or a tiled target identifies the primary window.
+  if #windows == 0 then
+    local visible = all_workspace_windows(workspace)
+    if #visible == 1 and profile_for(visible[1]) then
+      windows = visible
+    end
+  end
+
   if #windows ~= 1 then
     clear_suppression_on_workspace(workspace)
     stop_managed_on_workspace(workspace, true, #windows == 2)

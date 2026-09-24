@@ -23,6 +23,7 @@ currently experimental.
   window class.
 - Opening a second window returns both windows to normal Dwindle, keeping the
   established window on the left.
+- Auxiliary floating windows, such as dialogs, do not trigger two-window mode.
 - Closing the second window restores the remaining app's solo placement.
 - Toggling a known solo window to tiled and back to floating restores its saved
   placement.
