@@ -1,12 +1,12 @@
-# solo-dwindle
+# dwindle-nook
 
-Adaptive single-window placement for Hyprland's Dwindle layout.
+Adaptive home positions for solo windows in Hyprland's Dwindle layout.
 
-![A btop terminal using a saved solo-dwindle placement in the lower-left of a Hyprland workspace](assets/solo-dwindle.png)
+![A btop terminal using its saved dwindle-nook placement in the lower-left of a Hyprland workspace](assets/dwindle-nook.png)
 
-*A terminal using its saved solo placement on an otherwise empty workspace.*
+*A terminal settled into its saved nook on an otherwise empty workspace.*
 
-`solo-dwindle` leaves ordinary Dwindle behavior alone when a workspace has
+`dwindle-nook` leaves ordinary Dwindle behavior alone when a workspace has
 multiple windows. When a known application is the only window, it floats at a
 saved monitor-relative size and position. Unknown applications remain tiled
 until you deliberately float and arrange them once; that placement is then
@@ -47,8 +47,8 @@ setups can replace it with their own tag or class.
 Clone the repository and link the module into your Hyprland configuration:
 
 ```bash
-git clone https://github.com/cameroncooper/solo-dwindle.git ~/.local/share/solo-dwindle
-ln -s ~/.local/share/solo-dwindle/solo-dwindle.lua ~/.config/hypr/solo-dwindle.lua
+git clone https://github.com/cameroncooper/dwindle-nook.git ~/.local/share/dwindle-nook
+ln -s ~/.local/share/dwindle-nook/dwindle-nook.lua ~/.config/hypr/dwindle-nook.lua
 mkdir -p ~/.local/state/omarchy/windows
 ```
 
@@ -56,7 +56,7 @@ Then load it near the end of `~/.config/hypr/hyprland.lua`, after your normal
 Omarchy defaults and personal modules:
 
 ```lua
-require("hypr.solo-dwindle")
+require("hypr.dwindle-nook")
 ```
 
 Apply and validate the configuration:
@@ -81,7 +81,7 @@ Simply floating an app without adjusting it does not teach a preference.
 
 ## Configuring built-in profiles
 
-Profiles near the top of `solo-dwindle.lua` provide defaults for apps that
+Profiles near the top of `dwindle-nook.lua` provide defaults for apps that
 should work before they have been taught:
 
 ```lua
@@ -112,18 +112,20 @@ placement. Class profiles apply to one initial window class.
 Learned placements are stored in:
 
 ```text
-~/.local/state/omarchy/windows/solo-dwindle.tsv
+~/.local/state/omarchy/windows/dwindle-nook.tsv
 ```
 
 The values are normalized to the monitor's usable work area, so placements
 scale across monitor sizes. This file is personal runtime state and should not
 be committed to the repository.
 
+Placements saved by the former `solo-dwindle` name are migrated automatically.
+
 To reset a built-in profile or forget the learned placement for the active
 window:
 
 ```bash
-hyprctl eval 'require("hypr.solo-dwindle").reset_active()'
+hyprctl eval 'require("hypr.dwindle-nook").reset_active()'
 ```
 
 For a learned app, forgetting its placement returns the sole window to normal

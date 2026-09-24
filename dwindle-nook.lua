@@ -6,7 +6,7 @@
 local M = {}
 
 -- Placements are fractions of the monitor's usable work area. Add another
--- profile here when an app should participate in solo-dwindle. A tag profile
+-- profile here when an app should participate in dwindle-nook. A tag profile
 -- is preferable when Omarchy already groups several app classes under one tag.
 local profiles = {
   {
@@ -22,7 +22,9 @@ local stable_polls_before_learning = 2
 
 local state_home = os.getenv("XDG_STATE_HOME")
   or ((os.getenv("HOME") or "") .. "/.local/state")
-local state_file = state_home .. "/omarchy/windows/solo-dwindle.tsv"
+local state_directory = state_home .. "/omarchy/windows"
+local state_file = state_directory .. "/dwindle-nook.tsv"
+local legacy_state_file = state_directory .. "/solo-dwindle.tsv"
 
 local learned = {}
 local managed = {}
@@ -75,7 +77,12 @@ local function sanitize_placement(placement)
 end
 
 local function load_state()
-  local file = io.open(state_file, "r")
+  local source = state_file
+  local file = io.open(source, "r")
+  if not file then
+    source = legacy_state_file
+    file = io.open(source, "r")
+  end
   if not file then
     return
   end
@@ -103,6 +110,9 @@ local function load_state()
   end
 
   file:close()
+  if source == legacy_state_file and not os.rename(legacy_state_file, state_file) then
+    print("dwindle-nook: could not migrate legacy state file: " .. legacy_state_file)
+  end
 end
 
 local function save_state()
@@ -115,11 +125,11 @@ local function save_state()
   local temporary = state_file .. ".tmp"
   local file = io.open(temporary, "w")
   if not file then
-    print("solo-dwindle: could not open state file for writing: " .. temporary)
+    print("dwindle-nook: could not open state file for writing: " .. temporary)
     return false
   end
 
-  file:write("# solo-dwindle v1: key\tx\ty\twidth\theight\n")
+  file:write("# dwindle-nook v1: key\tx\ty\twidth\theight\n")
   for _, key in ipairs(keys) do
     local placement = learned[key]
     file:write(string.format(
@@ -134,7 +144,7 @@ local function save_state()
 
   file:close()
   if not os.rename(temporary, state_file) then
-    print("solo-dwindle: could not replace state file: " .. state_file)
+    print("dwindle-nook: could not replace state file: " .. state_file)
     return false
   end
 
@@ -837,7 +847,7 @@ function M.reset_active()
 
   hl.notification.create({
     text = (profile.default and "Reset" or "Forgot")
-      .. " solo-dwindle placement for "
+      .. " dwindle-nook placement for "
       .. (profile.label or profile.key),
     timeout = 2500,
     icon = "ok",
