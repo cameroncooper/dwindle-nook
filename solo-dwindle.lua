@@ -396,7 +396,7 @@ local function refresh_tracker()
   tracker:set_enabled(true)
 end
 
-local function begin_managing(window, profile, restore_existing)
+local function begin_managing(window, profile)
   if managed[window.address] or (window.fullscreen or 0) ~= 0 then
     return
   end
@@ -411,16 +411,12 @@ local function begin_managing(window, profile, restore_existing)
   }
 
   if already_floating then
-    if restore_existing then
-      -- The user manually floated a known, suppressed solo window again.
-      -- Restore its preference instead of adopting Hyprland's centered float.
-      apply_placement(window, profile)
-      apply_placement_soon(window, profile)
-    else
-      -- Preserve and immediately persist geometry the user chose before a
-      -- Hyprland config reload.
-      remember_geometry(window, profile)
-    end
+    -- Naturally floating apps commonly start at Hyprland's centered default.
+    -- Once their profile is known, restore it just like a manually re-floated
+    -- solo window; otherwise that centered launch geometry would overwrite the
+    -- learned placement before it could be applied.
+    apply_placement(window, profile)
+    apply_placement_soon(window, profile)
   else
     hl.dispatch(hl.dsp.window.float({ action = "set", window = window }))
     apply_placement(window, profile)
@@ -524,7 +520,7 @@ local function reconcile_workspace(workspace)
 
   if not entry and suppressed[window.address] and window.floating then
     suppressed[window.address] = nil
-    begin_managing(window, profile, true)
+    begin_managing(window, profile)
   elseif not entry and not suppressed[window.address] then
     begin_managing(window, profile)
   end
