@@ -2,6 +2,10 @@
 
 Adaptive single-window placement for Hyprland's Dwindle layout.
 
+![A btop terminal using a saved solo-dwindle placement in the lower-left of a Hyprland workspace](assets/solo-dwindle.png)
+
+*A terminal using its saved solo placement on an otherwise empty workspace.*
+
 `solo-dwindle` leaves ordinary Dwindle behavior alone when a workspace has
 multiple windows. When a known application is the only window, it floats at a
 saved monitor-relative size and position. Unknown applications remain tiled
