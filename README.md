@@ -12,6 +12,11 @@ saved monitor-relative size and position. Unknown applications remain tiled
 until you deliberately float and arrange them once; that placement is then
 remembered for future launches.
 
+Dwindle Nook augments Hyprland's native `dwindle` layout rather than
+registering a separate layout engine. Hyprland and Omarchy therefore still
+display the active layout as `dwindle`; selecting `scrolling` disables Nook
+behavior for that workspace.
+
 The module was built for Omarchy's Lua-based Hyprland configuration and is
 currently experimental.
 

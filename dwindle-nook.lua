@@ -19,6 +19,7 @@ local profiles = {
 local poll_ms = 250
 local stable_polls_before_save = 3
 local stable_polls_before_learning = 2
+local restore_polls_before_tracking = 4
 
 local state_home = os.getenv("XDG_STATE_HOME")
   or ((os.getenv("HOME") or "") .. "/.local/state")
@@ -405,7 +406,7 @@ local function refresh_tracker()
   tracker:set_enabled(true)
 end
 
-local function begin_managing(window, profile)
+local function begin_managing(window, profile, settle_after_restore)
   if managed[window.address] or (window.fullscreen or 0) ~= 0 then
     return
   end
@@ -417,6 +418,7 @@ local function begin_managing(window, profile)
     last_rect = nil,
     dirty = false,
     stable_polls = 0,
+    restore_polls = settle_after_restore and restore_polls_before_tracking or 0,
   }
 
   if already_floating then
@@ -541,9 +543,9 @@ local function reconcile_workspace(workspace)
 
   if not entry and suppressed[window.address] and window.floating then
     suppressed[window.address] = nil
-    begin_managing(window, profile)
+    begin_managing(window, profile, false)
   elseif not entry and not suppressed[window.address] then
-    begin_managing(window, profile)
+    begin_managing(window, profile, true)
   end
 end
 
@@ -632,7 +634,7 @@ local function observe_learning(workspace, seen)
         begin_managing(window, {
           key = key,
           label = app_class(window),
-        })
+        }, false)
         hl.notification.create({
           text = "Saved solo placement for " .. (app_class(window) or key),
           timeout = 2500,
@@ -695,7 +697,16 @@ local function tracker_tick()
     elseif (window.fullscreen or 0) == 0 then
       local rect = window_rect(window)
       if rect then
-        if not entry.last_rect then
+        if entry.restore_polls > 0 then
+          -- Startup rules and application initialization can resize a window
+          -- after its first configure. Keep restoring during a short grace
+          -- period so those changes are not mistaken for a user adjustment.
+          apply_placement(window, entry.profile)
+          entry.restore_polls = entry.restore_polls - 1
+          entry.last_rect = nil
+          entry.dirty = false
+          entry.stable_polls = 0
+        elseif not entry.last_rect then
           entry.last_rect = rect
         elseif not same_rect(rect, entry.last_rect) then
           entry.last_rect = rect
@@ -810,12 +821,6 @@ hl.on("monitor.layout_changed", function()
     restore_managed_on_workspace(workspace)
   end
   reconcile_all()
-end)
-
-hl.on("hyprland.shutdown", function()
-  for _, entry in pairs(managed) do
-    remember_geometry(entry.window, entry.profile)
-  end
 end)
 
 function M.reset_active()
